@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package analyzer;
+
+import "google/api/annotations.proto";
+
+option go_package = "backend/internal/grpcapi";
+
+message AnalyzeRequest {
+  string url = 1;
+}
+
+message AnalyzeResponse {
+  string task_id = 1;
+  string status = 2;
+  string summary = 3;
+  string file_path = 4;
+  string error_message = 5;
+}
+
+message GetTaskRequest {
+  string task_id = 1;
+}
+
+message ListTasksRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message TaskItem {
+  string task_id = 1;
+  string url = 2;
+  string domain = 3;
+  string status = 4;
+  string summary = 5;
+  string created_at = 6;
+}
+
+message ListTasksResponse {
+  repeated TaskItem tasks = 1;
+  int32 total = 2;
+}
+
+service AnalyzerService {
+  rpc Analyze(AnalyzeRequest) returns (AnalyzeResponse) {
+    option (google.api.http) = {
+      post: "/api/analyze"
+      body: "*"
+    };
+  }
+  rpc GetTask(GetTaskRequest) returns (AnalyzeResponse) {
+    option (google.api.http) = {
+      get: "/api/tasks/{task_id}"
+    };
+  }
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse) {
+    option (google.api.http) = {
+      get: "/api/tasks"
+    };
+  }
+}

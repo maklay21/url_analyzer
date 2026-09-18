@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: analyzer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+
+  redis: ## опционально для кэша
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  backend:
+    build: ./backend
+    ports:
+      - "50051:50051"
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/analyzer?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: mistral:7b
+      OUTPUT_DIR: /app/results
+    volumes:
+      - ./results:/app/results
+    depends_on:
+      - postgres
+      - redis
+      - ollama
+
+volumes:
+  pgdata:
+  ollama_data:
